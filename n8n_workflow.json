@@ -1,0 +1,138 @@
+{
+  "name": "OmniChat AI - Webhook LLM Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9b0d7602-dd81-44eb-90aa-da2f91a47734",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-node-id",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ai-agent-node-id",
+      "name": "AI Agent",
+      "type": "n8n-nodes-base.advancedAiAgent",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gemini-1.5-flash",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "gemini-model-id",
+      "name": "Google Gemini Chat Model",
+      "type": "n8n-nodes-base.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        420,
+        500
+      ],
+      "credentials": {
+        "googleGeminiSdkApi": {
+          "id": "google-gemini-credentials-placeholder",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "memory-node-id",
+      "name": "Window Buffer Memory",
+      "type": "n8n-nodes-base.memoryWindowBuffer",
+      "typeVersion": 1.2,
+      "position": [
+        550,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"output\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "id": "respond-to-webhook-id",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        720,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "omnichat-ai-workflow"
+  },
+  "pinData": {}
+}
