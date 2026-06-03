@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniChat AI - Unified Hub with Google Login & n8n</title>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+
+    <!-- ==========================================
+         AUTHENTICATION / LANDING VIEW
+         ========================================== -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-glow-wrapper">
+                    <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                </div>
+                <h1>OmniChat AI</h1>
+                <p>Your premium intelligent assistant, powered by custom n8n workflows</p>
+            </div>
+
+            <div class="auth-body">
+                <!-- Custom Login / Signup Form -->
+                <form id="auth-form" class="auth-form">
+                    <div class="form-group" id="group-name" style="display: none;">
+                        <label for="auth-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-user input-icon"></i>
+                            <input type="text" id="auth-name" placeholder="John Doe">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auth-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-envelope input-icon"></i>
+                            <input type="email" id="auth-email" placeholder="you@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auth-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="auth-password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary auth-submit-btn" id="btn-auth-submit">
+                        <span>Sign In</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="form-toggle-wrapper">
+                    <span id="form-toggle-text">Don't have an account?</span>
+                    <button type="button" class="btn-link" id="btn-form-toggle">Create Account</button>
+                </div>
+
+                <div class="auth-divider">or continue with</div>
+
+                <!-- Google Sign-In -->
+                <div id="google-signin-div" style="display:none;"></div>
+                <button type="button" class="btn-google" id="btn-google-mock">
+                    <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                    </svg>
+                    <span>Sign in with Google</span>
+                </button>
+
+                <div class="auth-divider">or explore instantly</div>
+
+                <button type="button" class="btn-secondary" id="btn-quick-login">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Enter in Demo Mode</span>
+                </button>
+            </div>
+
+            <div class="auth-footer">
+                By signing in, you connect this chat interface directly to your automated workflows.
+                Configure custom endpoints inside.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MAIN APPLICATION INTERFACE
+         ========================================== -->
+    <div id="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <div class="sidebar-brand-icon">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <span>OmniChat AI</span>
+                </div>
+                <button type="button" class="btn-sidebar-close" id="btn-sidebar-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-action">
+                <button type="button" class="btn-new-chat" id="btn-new-chat">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+
+            <div class="sidebar-history" id="chat-history-list">
+                <div class="history-section-title">Recent Chats</div>
+                <!-- Chat items loaded dynamically from JS -->
+                <div class="sidebar-empty-state" id="history-empty-state">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    <p>No conversations yet</p>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button type="button" class="btn-sidebar-option" id="btn-settings-open">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings & API</span>
+                </button>
+
+                <div class="user-profile" id="user-profile-trigger">
+                    <img src="" alt="Avatar" class="user-avatar" id="profile-avatar" style="display: none;">
+                    <div class="user-avatar" id="profile-avatar-fallback">U</div>
+                    <div class="user-info">
+                        <span class="user-name" id="profile-name">Guest User</span>
+                        <span class="user-email" id="profile-email">guest@omnichat.ai</span>
+                    </div>
+                    <button type="button" class="history-action-btn" id="btn-logout" title="Log Out">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <!-- Main Chat Window Area -->
+        <main class="chat-container">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="header-left">
+                    <button type="button" class="btn-menu" id="btn-sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <!-- Brand / Theme Presets -->
+                    <div class="model-switch">
+                        <button type="button" class="model-tab active" data-model="gpt">
+                            <i class="fa-solid fa-cube"></i>
+                            <span>ChatGPT</span>
+                        </button>
+                        <button type="button" class="model-tab" data-model="gemini">
+                            <i class="fa-solid fa-star"></i>
+                            <span>Gemini</span>
+                        </button>
+                        <button type="button" class="model-tab" data-model="claude">
+                            <i class="fa-solid fa-feather"></i>
+                            <span>Claude</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <!-- Dynamic connection indicator -->
+                    <div class="status-badge" id="n8n-status-badge">
+                        <span class="status-dot"></span>
+                        <span id="n8n-status-text">Webhook Sync</span>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button type="button" class="btn-icon" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Message Feed -->
+            <div class="chat-messages" id="chat-messages-container">
+                <!-- Welcome Empty State -->
+                <div class="chat-empty-state" id="chat-welcome-state">
+                    <i class="fa-solid fa-wand-magic-sparkles empty-icon"></i>
+                    <h2 id="welcome-title">How can I assist you today?</h2>
+                    <p>Ask a question, analyze data, or generate code. Responses are routed through your configured n8n
+                        workflows.</p>
+
+                    <div class="suggestions-grid">
+                        <div class="suggestion-card"
+                            data-prompt="Write a modern CSS gradient template with glassmorphism styling.">
+                            <i class="fa-solid fa-palette suggestion-icon"></i>
+                            <div class="suggestion-title">Design layout styling</div>
+                            <div class="suggestion-text">"Write a modern CSS gradient template with glassmorphism..."
+                            </div>
+                        </div>
+                        <div class="suggestion-card"
+                            data-prompt="Create a JavaScript helper function to debounce scroll events.">
+                            <i class="fa-solid fa-code suggestion-icon"></i>
+                            <div class="suggestion-title">Code a JavaScript helper</div>
+                            <div class="suggestion-text">"Create a helper function to debounce scroll events..."</div>
+                        </div>
+                        <div class="suggestion-card"
+                            data-prompt="Write an email sequence onboarding new subscribers for our AI platform.">
+                            <i class="fa-solid fa-envelope-open-text suggestion-icon"></i>
+                            <div class="suggestion-title">Draft subscriber emails</div>
+                            <div class="suggestion-text">"Write an email sequence onboarding new subscribers..."</div>
+                        </div>
+                        <div class="suggestion-card"
+                            data-prompt="Explain how REST APIs work compared to GraphQL in simple developer terms.">
+                            <i class="fa-solid fa-circle-question suggestion-icon"></i>
+                            <div class="suggestion-title">API architecture basics</div>
+                            <div class="suggestion-text">"Explain REST APIs compared to GraphQL in simple terms..."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic messages go here -->
+            </div>
+
+            <!-- Message Input Area -->
+            <footer class="chat-footer">
+                <!-- Image Preview Container -->
+                <div id="image-preview-container" class="image-preview-container" style="display: none;">
+                    <div class="preview-wrapper">
+                        <img id="image-preview" src="" alt="Attached preview">
+                        <button type="button" id="btn-remove-image" class="btn-remove-image" title="Remove image">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <div class="input-textarea-wrapper">
+                        <textarea id="chat-input" rows="1" placeholder="Ask anything..."></textarea>
+                    </div>
+                    <div class="input-controls">
+                        <div class="input-controls-left">
+                            <button type="button" class="btn-input-tool" id="btn-clear-chat"
+                                title="Clear current screen messages">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                            <button type="button" class="btn-input-tool" id="btn-attach" title="Attach image">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </button>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn-input-tool" id="btn-mic" title="Voice dictation (mock)">
+                                <i class="fa-solid fa-microphone"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="btn-send" id="btn-send" disabled>
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-disclaimer">
+                    OmniChat AI runs on Gemini 3.5 & Custom Pipelines. Webhook: <span id="footer-webhook-display">Not
+                        Configured</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- ==========================================
+         SETTINGS & CONFIGURATION MODAL
+         ========================================== -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings & Integrations</h3>
+                <button type="button" class="btn-modal-close" id="btn-settings-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Theme styling selection -->
+                <div class="settings-group">
+                    <label class="settings-label">Color Interface Mode</label>
+                    <div class="theme-selector-grid">
+                        <div class="theme-card active" id="theme-card-dark" data-mode="dark">
+                            <span class="theme-preview-circle dark"></span>
+                            <span>Charcoal Dark</span>
+                        </div>
+                        <div class="theme-card" id="theme-card-light" data-mode="light">
+                            <span class="theme-preview-circle light"></span>
+                            <span>Clean Light</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- n8n Integration parameters -->
+                <div class="settings-group">
+                    <label class="settings-label" for="setting-n8n-url">n8n Webhook URL</label>
+                    <input type="url" id="setting-n8n-url" class="settings-input"
+                        placeholder="https://primary-n8n.domain.com/webhook/uuid-path">
+                    <span class="settings-hint">
+                        When configured, OmniChat sends user inputs to this webhook.
+                        The workflow should respond with a JSON object containing an <code>output</code> or
+                        <code>text</code> key, or plain text.
+                    </span>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label" for="setting-auth-header">Authorization Header (Optional)</label>
+                    <input type="password" id="setting-auth-header" class="settings-input"
+                        placeholder="Bearer your-secret-token">
+                    <span class="settings-hint">Headers sent as <code>Authorization</code> in the webhook call.</span>
+                </div>
+
+                <!-- Google OAuth Client ID -->
+                <div class="settings-group">
+                    <label class="settings-label" for="setting-google-client-id">
+                        <i class="fa-brands fa-google" style="color:#4285F4;margin-right:0.4rem;"></i>
+                        Google Client ID (OAuth)
+                    </label>
+                    <input type="text" id="setting-google-client-id" class="settings-input"
+                        placeholder="12345678-abcdef.apps.googleusercontent.com">
+                    <span class="settings-hint">
+                        Paste your Google OAuth 2.0 Web Client ID to enable real Google Sign-In.
+                        Leave blank to use the built-in simulator.
+                    </span>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="btn-settings-cancel"
+                    style="padding: 0.65rem 1.25rem;">Cancel</button>
+                <button type="button" class="btn-primary" id="btn-settings-save">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         TOAST NOTIFICATIONS HUB
+         ========================================== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Application Script Logic -->
+    <script src="active.js"></script>
+</body>
+
+</html>
