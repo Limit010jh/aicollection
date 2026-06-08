@@ -11,7 +11,7 @@ const state = {
     user: null,          // { name, email, avatar, provider }
     settings: {
         themeMode: 'dark',
-        n8nUrl: 'https://limit01000.app.n8n.cloud/webhook-test/9b0d7602-dd81-44eb-90aa-da2f91a47734',
+        n8nUrl: 'https://limit01000.app.n8n.cloud/webhook/9b0d7602-dd81-44eb-90aa-da2f91a47734',
         n8nAuthHeader: '',
         googleClientId: ''
     },
@@ -481,7 +481,7 @@ function loadSettings() {
         }
         // Fallback default url if empty in storage
         if (!state.settings.n8nUrl) {
-            state.settings.n8nUrl = 'https://limit22274.app.n8n.cloud/webhook/9b0d7602-dd81-44eb-90aa-da2f91a47734';
+            state.settings.n8nUrl = 'https://limit01000.app.n8n.cloud/webhook/9b0d7602-dd81-44eb-90aa-da2f91a47734';
         }
     } catch (e) {
         console.error("Failed to load settings from storage", e);
